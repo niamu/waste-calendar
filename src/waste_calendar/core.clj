@@ -7,9 +7,9 @@
   (:import
    [java.io FileOutputStream]
    [java.util UUID]
-   [net.fortuna.ical4j.model Calendar Date DateList]
+   [net.fortuna.ical4j.model Calendar Date]
    [net.fortuna.ical4j.model.component VEvent]
-   [net.fortuna.ical4j.model.property CalScale ProdId Uid Version RDate]
+   [net.fortuna.ical4j.model.property CalScale ProdId Uid Version]
    [net.fortuna.ical4j.data CalendarOutputter]))
 
 (def resource
@@ -52,18 +52,16 @@
 (defn garbage-calendar
   [dates]
   (let [cal (Calendar.)
-        props (.getProperties cal)
-        vevent (VEvent. (first dates) "Recycling & Garbage Collection")
-        vevent-props (.getProperties vevent)]
+        props (.getProperties cal)]
     (doto props
       (.add (ProdId. "-//London, ON Garbage Calendar//iCal4j 2.0//EN"))
       (.add Version/VERSION_2_0)
       (.add CalScale/GREGORIAN))
-    (.add vevent-props (Uid. (str (UUID/randomUUID))))
-    (doseq [d (rest dates)]
-      (.add vevent-props (RDate. (doto (DateList.)
-                                   (.addAll (rest dates))))))
-    (.add (.getComponents cal) vevent)
+    (doseq [d dates]
+      (let [vevent (VEvent. d "Recycling & Garbage Collection")
+            vevent-props (.getProperties vevent)]
+        (.add vevent-props (Uid. (str (UUID/randomUUID))))
+        (.add (.getComponents cal) vevent)))
     cal))
 
 (defn save-calendar!
